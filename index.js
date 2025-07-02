@@ -1,0 +1,136 @@
+class Captchillision {
+    constructor() {
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = 512;
+        this.canvas.height = 256;
+        document.getElementById('appbody').appendChild(this.canvas);
+
+        this.ctx = this.canvas.getContext('2d');
+        this.imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+        this.data = this.imageData.data;
+
+        for (let i = 0; i < this.data.length; i += 4) {
+            const value = 1 + (Math.round(Math.random()) * 254);
+            this.data[i    ] = value;
+            this.data[i + 1] = value;
+            this.data[i + 2] = value;
+            this.data[i + 3] = 255;  
+        }
+
+        this.xScroller = this.data.slice();
+        for (let i = 0; i < this.xScroller.length; i += 4) {
+                const value = 1 + (Math.round(Math.random()) * 254);
+                this.xScroller[    i] = value;
+                this.xScroller[i + 1] = value;
+                this.xScroller[i + 2] = value;
+                this.xScroller[i + 3] = 255;  
+        }
+
+        this.yScroller = this.data.slice();
+        for (let i = 0; i < this.yScroller.length; i += 4) {
+            const value = 1 + (Math.round(Math.random()) * 254);
+            this.yScroller[    i] = value;
+            this.yScroller[i + 1] = value;
+            this.yScroller[i + 2] = value;
+            this.yScroller[i + 3] = 255;  
+        }
+
+        this.backgroundImageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+        this.backgroundData = this.backgroundImageData.data;
+
+        this.animate = this.animate.bind(this);
+
+        this.indexing = [];
+        for (let i = 0; i < this.canvas.width; i += 4) {
+            this.indexing.push(Math.random());
+        }
+        
+        this.animate();
+    }
+
+    animate() {
+        requestAnimationFrame(this.animate);
+
+        // Draw text in the middle
+        this.ctx.font = '168px Arial';
+        this.ctx.fillStyle = 'white';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        
+        const text = 'zalo';
+        const x = this.canvas.width / 2;
+        const y = this.canvas.height / 2;
+        
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillText(text, x, y);
+
+        // Copy the canvas to the background image data
+        this.backgroundImageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        this.backgroundData = this.backgroundImageData.data;
+
+        this.dataCopy = this.data.slice();
+
+        // Scroll the xScroller and yScroller
+        let xScrollerCopy = this.xScroller.slice();
+        for (let i = 0; i < this.xScroller.length; i += 4) {
+            let yIndex = Math.floor(i / (this.canvas.width * 4));
+            if( yIndex === 0 || yIndex == this.canvas.height - 1){
+                const value = 1 + (Math.round(Math.random()) * 254);
+                this.xScroller[    i] = value;
+                this.xScroller[i + 1] = value;
+                this.xScroller[i + 2] = value;
+                this.xScroller[i + 3] = 255;
+            } else {
+                let rowAboveOrBelowIndex = i + (this.canvas.width * 4 * ((i/4) % 2 === 0 ? 1 : -1));
+                this.xScroller[i    ] = xScrollerCopy[rowAboveOrBelowIndex + 0];
+                this.xScroller[i + 1] = xScrollerCopy[rowAboveOrBelowIndex + 1];
+                this.xScroller[i + 2] = xScrollerCopy[rowAboveOrBelowIndex + 2];
+                this.xScroller[i + 3] = 255;
+            }
+        }
+        let yScrollerCopy = this.yScroller.slice();
+        for (let i = 0; i < this.yScroller.length; i += 4) {
+            let xIndex = (i / 4) % this.canvas.width;
+            let yIndex = Math.floor(i / (this.canvas.width * 4));
+            if( xIndex === 0 || xIndex == this.canvas.width - 1){
+                const value = 1 + (Math.round(Math.random()) * 254);
+                this.yScroller[    i] = value;
+                this.yScroller[i + 1] = value;
+                this.yScroller[i + 2] = value;
+                this.yScroller[i + 3] = 255;  
+            } else {
+                let leftOrRightIndex = yIndex % 2 === 0 ? i+4 : i-4;
+                this.yScroller[i    ] = yScrollerCopy[leftOrRightIndex + 0];
+                this.yScroller[i + 1] = yScrollerCopy[leftOrRightIndex + 1];
+                this.yScroller[i + 2] = yScrollerCopy[leftOrRightIndex + 2];
+                this.yScroller[i + 3] = 255;                 
+            }
+        }
+
+        for (let i = 0; i < this.data.length; i += 4) {
+            if(this.backgroundData[i + 3] != 0){
+                // Grab the value from the row below
+                let xIndex = (i / 4) % this.canvas.width;
+                let yIndex = Math.floor(i / (this.canvas.width * 4));
+                let sourceArr = (yIndex % 2 === 0) != (xIndex % 2 === 0) ? this.xScroller : this.yScroller;
+                this.data[i    ] = sourceArr[i    ];
+                this.data[i + 1] = sourceArr[i + 1];
+                this.data[i + 2] = sourceArr[i + 2];
+                this.data[i + 3] = 255;
+            }else{
+                let value = 1 + (Math.round(Math.random()) * 254);
+                this.data[i    ] = value;
+                this.data[i + 1] = value;
+                this.data[i + 2] = value;
+                this.data[i + 3] = 255;
+            }
+        }
+
+        this.ctx.putImageData(this.imageData, 0, 0);
+    }
+}
+
+window.addEventListener('load', () => {
+    new Captchillision();
+});
