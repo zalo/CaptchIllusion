@@ -1,3 +1,5 @@
+import { GIFEncoder, quantize, applyPalette } from 'https://unpkg.com/gifenc';
+
 class Captchillision {
     constructor() {
         this.canvas = document.createElement('canvas');
@@ -45,6 +47,9 @@ class Captchillision {
             this.indexing.push(Math.random());
         }
         
+        this.frameNum = 0;
+        this.gif = new GIFEncoder();
+
         this.animate();
     }
 
@@ -128,6 +133,27 @@ class Captchillision {
         }
 
         this.ctx.putImageData(this.imageData, 0, 0);
+
+        if(this.frameNum < 10){
+            // Quantize your colors to a 256-color RGB palette palette
+            let palette = quantize(this.data, 2);
+
+            // Get an indexed bitmap by reducing each pixel to the nearest color palette
+            let index = applyPalette(this.data, palette);
+
+            // Write a single frame
+            this.gif.writeFrame(index, this.canvas.width, this.canvas.height, { palette: palette, delay: 16 });
+
+        }else if(this.frameNum == 10){
+            // Write end-of-stream character
+            this.gif.finish();
+
+            // Get the Uint8Array output of your binary GIF file
+            let output = this.gif.bytes();
+            let blob = new Blob([output], { type: 'image/gif' });
+            window.open(URL.createObjectURL(blob));
+        }
+        this.frameNum += 1;
     }
 }
 
