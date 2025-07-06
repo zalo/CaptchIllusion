@@ -114,7 +114,7 @@ class Captchillision {
         }
 
         for (let i = 0; i < this.data.length; i += 4) {
-            if(this.backgroundData[i + 3] == 0){
+            if(this.backgroundData[i + 3] != 0){
                 // Grab the value from the row below
                 let xIndex = (i / 4) % this.canvas.width;
                 let yIndex = Math.floor(i / (this.canvas.width * 4));
