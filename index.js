@@ -57,12 +57,12 @@ class Captchillision {
         requestAnimationFrame(this.animate);
 
         // Draw text in the middle
-        this.ctx.font = '168px Arial';
+        this.ctx.font = '188px Arial';
         this.ctx.fillStyle = 'white';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         
-        const text = 'zalo';
+        const text = 'KFUR';
         const x = this.canvas.width / 2;
         const y = this.canvas.height / 2;
         
@@ -134,25 +134,51 @@ class Captchillision {
 
         this.ctx.putImageData(this.imageData, 0, 0);
 
-        if(this.frameNum < 10){
-            // Quantize your colors to a 256-color RGB palette palette
-            let palette = quantize(this.data, 2);
+        //if(this.frameNum < 30){
+        //    // Quantize your colors to a 256-color RGB palette palette
+        //    let palette = quantize(this.data, 2);
 
-            // Get an indexed bitmap by reducing each pixel to the nearest color palette
-            let index = applyPalette(this.data, palette);
+        //    // Get an indexed bitmap by reducing each pixel to the nearest color palette
+        //    let index = applyPalette(this.data, palette);
 
-            // Write a single frame
-            this.gif.writeFrame(index, this.canvas.width, this.canvas.height, { palette: palette, delay: 16 });
+        //    // Write a single frame
+        //    this.gif.writeFrame(index, this.canvas.width, this.canvas.height, { palette: palette, delay: 16 });
 
-        }else if(this.frameNum == 10){
-            // Write end-of-stream character
-            this.gif.finish();
+        //}else if(this.frameNum == 30){
+        //    // Write end-of-stream character
+        //    this.gif.finish();
 
-            // Get the Uint8Array output of your binary GIF file
-            let output = this.gif.bytes();
-            let blob = new Blob([output], { type: 'image/gif' });
-            window.open(URL.createObjectURL(blob));
-        }
+        //    // Get the Uint8Array output of your binary GIF file
+        //    let output = this.gif.bytes();
+        //    let blob = new Blob([output], { type: 'image/gif' });
+        //    window.open(URL.createObjectURL(blob));
+        //}
+
+        //if(this.frameNum === 10) {
+        //    this.chunks = [];
+        //    this.stream = this.canvas.captureStream(240); // grab our canvas MediaStream
+        //    this.rec = new MediaRecorder(this.stream, { mimeType: 'video/webm' }); // init the recorder
+        //    // every time the recorder has new data, we will store it in our array
+        //    this.rec.ondataavailable = e => this.chunks.push(e.data);
+        //    // only when the recorder stops, we construct a complete Blob from all the chunks
+        //    this.rec.onstop = e => {
+        //        let blob = new Blob(this.chunks, {type: 'video/webm'});
+        //        const vid = document.createElement('video');
+        //        vid.src = URL.createObjectURL(blob);
+        //        vid.loop = true;
+        //        vid.autoplay = true;
+        //        vid.controls = true;
+        //        document.body.appendChild(vid);
+        //        const a = document.createElement('a');
+        //        a.download = 'myvid.webm';
+        //        a.href = vid.src;
+        //        a.textContent = 'download the video';
+        //        document.body.appendChild(a);
+        //    };
+        //    this.rec.start();
+        //    setTimeout(()=>{ this.rec.stop(); }, 3000); // stop recording in 3s
+        //}
+
         this.frameNum += 1;
     }
 }
