@@ -5,3 +5,9 @@
 *.webp
 *.jpg
 *.jxl
+
+.claude
+.wrangler
+
+cloudflare_workers_docs.md
+node_modules

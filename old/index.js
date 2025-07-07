@@ -7,7 +7,9 @@ class Captchillision {
         this.canvas.height = 256;
         document.getElementById('appbody').appendChild(this.canvas);
 
-        this.ctx = this.canvas.getContext('2d');
+        this.ctx = this.canvas.getContext('2d', {
+            willReadFrequently: true
+        });
         this.imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
         this.data = this.imageData.data;
 
