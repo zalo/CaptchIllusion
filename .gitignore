@@ -5,6 +5,7 @@
 *.webp
 *.jpg
 *.jxl
+*.svg
 
 .claude
 .wrangler

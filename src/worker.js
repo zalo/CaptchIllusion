@@ -1,5 +1,6 @@
 import { GIFEncoder, quantize, applyPalette } from './gifenc.esm.js';
 import { TEXT_ATLAS } from './text_atlas.js'; // Import the text atlas
+import { encode } from './UPNG.js'; // Import UPNG for PNG encoding
 
 class CaptchaGenerator {
   constructor() {
@@ -177,6 +178,22 @@ function generateUrlCode() {
   return result;
 }
 
+// Generates CSS such that only one frame shows at a time
+// This is the "magic" that animates the SVG!
+function generateAnimationCSS (numFrames = 25, frameRate = 240) {
+  let frameTime = 1.0 / frameRate;
+  let animationTime = frameTime * numFrames;
+  let animationString =
+    '  <style type="text/css">\n' +
+    '    @keyframes flash { 0%   { visibility: visible; }\n' +
+    '                       ' + (100.0 / numFrames) + '%  { visibility: hidden;  } }\n';
+  for (let i = 0; i < numFrames; i++) {
+    animationString += '    #Frame-' + i + ' { animation: flash ' + animationTime + 's linear infinite ' + (frameTime * i) + 's;    }\n';
+  }
+  animationString += '  </style>';
+  return animationString;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -229,7 +246,7 @@ export default {
           // Write frame to GIF
           gif.writeFrame(index, generator.width, generator.height, { 
             palette: palette, 
-            delay: 16 // 100ms delay between frames
+            delay: 15 // 100ms delay between frames
           });
         }
         
@@ -238,7 +255,55 @@ export default {
         
         // Get the GIF bytes
         const gifData = gif.bytes();
+
+        /*let frames = [];
+        let delays = [];
+        const numFrames = 25;
+        for (let i = 0; i < numFrames; i++) {
+          generator.drawText(captchaText);
+          const frameData = generator.generateFrame();
+          frames.push(frameData.buffer.slice(0)); // Push a copy of the frame data
+          delays.push(16); // 100ms delay for each frame
+        }
+
+        var pngData = encode(frames, 512, 256, 0, delays);*/
+
+        /*// Create an SVG where each frame is a separate png layer
+        const numFrames = 25;
+        let svgText = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="256">';
+        for (let i = 0; i < numFrames; i++) {
+          generator.drawText(captchaText);
+          let frameData = generator.generateFrame();
+          let pngData = encode([frameData.buffer], 512, 256, 0);
+          console.log('Generated frame ' + i + ' data length: ' + new Uint8Array(pngData).length, frameData.length);
+
+          svgText += '  <g id="Frame-' + i + '" visibility="hidden">\n';
+          svgText += '    <image href="data:image/png;base64,' + btoa([].reduce.call(new Uint8Array(pngData),function(p,c){return p+String.fromCharCode(c)},'')) + '" x="0" y="0" width="512" height="256" />\n';
+          svgText += '  </g>\n';
+        }
+        svgText += generateAnimationCSS(numFrames, 61); // 61 FPS animation
+        svgText += '</svg>';*/
+
+        // Create an SVG where each frame is a separate gif layer
         
+        /*const numFrames = 25;
+        let svgText = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="256">';
+        for (let i = 0; i < numFrames; i++) {
+          generator.drawText(captchaText);
+          let gif = new GIFEncoder();
+          let frameData = generator.generateFrame();
+          let palette = quantize(frameData, 256);
+          let index = applyPalette(frameData, palette);
+          gif.writeFrame(index, generator.width, generator.height, { palette: palette });
+          gif.finish();
+
+          svgText += '  <g id="Frame-' + i + '" visibility="hidden">\n';
+          svgText += '    <image href="data:image/gif;base64,' + btoa([].reduce.call(gif.bytes(),function(p,c){return p+String.fromCharCode(c)},'')) + '" x="0" y="0" width="512" height="256" />\n';
+          svgText += '  </g>\n';
+        }
+        svgText += generateAnimationCSS(numFrames, 60); // 60 FPS animation
+        svgText += '</svg>';*/
+
         return new Response(gifData, {
           headers: { 
             'Content-Type': 'image/gif',
