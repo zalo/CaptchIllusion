@@ -1,44 +1,5 @@
 import { GIFEncoder, quantize, applyPalette } from './gifenc.esm.js';
-
-// Text atlas for drawing text without Canvas
-const TEXT_ATLAS = {
-  '0': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
-  '1': [[0,0,1,0,0],[0,1,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,1,1,1,0]],
-  '2': [[0,1,1,1,0],[1,0,0,0,1],[0,0,1,1,0],[0,1,0,0,0],[1,1,1,1,1]],
-  '3': [[0,1,1,1,0],[1,0,0,0,1],[0,0,1,1,0],[1,0,0,0,1],[0,1,1,1,0]],
-  '4': [[1,0,0,1,0],[1,0,0,1,0],[1,1,1,1,1],[0,0,0,1,0],[0,0,0,1,0]],
-  '5': [[1,1,1,1,1],[1,0,0,0,0],[1,1,1,1,0],[0,0,0,0,1],[1,1,1,1,0]],
-  '6': [[0,1,1,1,0],[1,0,0,0,0],[1,1,1,1,0],[1,0,0,0,1],[0,1,1,1,0]],
-  '7': [[1,1,1,1,1],[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0]],
-  '8': [[0,1,1,1,0],[1,0,0,0,1],[0,1,1,1,0],[1,0,0,0,1],[0,1,1,1,0]],
-  '9': [[0,1,1,1,0],[1,0,0,0,1],[0,1,1,1,1],[0,0,0,0,1],[0,1,1,1,0]],
-  'A': [[0,1,1,1,0],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
-  'B': [[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0]],
-  'C': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,0],[1,0,0,0,1],[0,1,1,1,0]],
-  'D': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0]],
-  'E': [[1,1,1,1,1],[1,0,0,0,0],[1,1,1,1,0],[1,0,0,0,0],[1,1,1,1,1]],
-  'F': [[1,1,1,1,1],[1,0,0,0,0],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0]],
-  'G': [[0,1,1,1,0],[1,0,0,0,0],[1,0,1,1,1],[1,0,0,0,1],[0,1,1,1,0]],
-  'H': [[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
-  'I': [[0,1,1,1,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,1,1,1,0]],
-  'J': [[0,0,0,0,1],[0,0,0,0,1],[0,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
-  'K': [[1,0,0,0,1],[1,0,0,1,0],[1,1,1,0,0],[1,0,0,1,0],[1,0,0,0,1]],
-  'L': [[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,1,1]],
-  'M': [[1,0,0,0,1],[1,1,0,1,1],[1,0,1,0,1],[1,0,0,0,1],[1,0,0,0,1]],
-  'N': [[1,0,0,0,1],[1,1,0,0,1],[1,0,1,0,1],[1,0,0,1,1],[1,0,0,0,1]],
-  'O': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
-  'P': [[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0]],
-  'Q': [[0,1,1,1,0],[1,0,0,0,1],[1,0,1,0,1],[1,0,0,1,0],[0,1,1,0,1]],
-  'R': [[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,1,0],[1,0,0,0,1]],
-  'S': [[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]],
-  'T': [[1,1,1,1,1],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]],
-  'U': [[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
-  'V': [[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,0,1,0],[0,0,1,0,0]],
-  'W': [[1,0,0,0,1],[1,0,0,0,1],[1,0,1,0,1],[1,1,0,1,1],[1,0,0,0,1]],
-  'X': [[1,0,0,0,1],[0,1,0,1,0],[0,0,1,0,0],[0,1,0,1,0],[1,0,0,0,1]],
-  'Y': [[1,0,0,0,1],[0,1,0,1,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]],
-  'Z': [[1,1,1,1,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,1,1,1,1]]
-};
+import { TEXT_ATLAS } from './text_atlas.js'; // Import the text atlas
 
 class CaptchaGenerator {
   constructor() {
@@ -81,43 +42,37 @@ class CaptchaGenerator {
     }
   }
 
-  drawText(text, x, y, scale = 20) {
+  // Transpose a UInt8Array according to a specific width and height
+  transpose(array, width, height) {
+    const transposed = new Uint8Array(array.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIndex  = (y * width + x) * 4;
+        const destIndex = (x * height + y) * 4;
+        transposed[destIndex] = array[srcIndex];
+        transposed[destIndex + 1] = array[srcIndex + 1];
+        transposed[destIndex + 2] = array[srcIndex + 2];
+        transposed[destIndex + 3] = array[srcIndex + 3];
+      }
+    }
+    return transposed;
+  }
+
+  drawText(text) {
     // Clear background
     this.backgroundData.fill(0);
-    
-    const totalWidth = text.length * 5 * scale + (text.length - 1) * scale;
-    const startX = x - totalWidth / 2;
-    const startY = y - (5 * scale) / 2;
 
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
       const charPattern = TEXT_ATLAS[char];
       if (!charPattern) continue;
-
-      const charX = startX + i * (5 * scale + scale);
       
-      for (let row = 0; row < 5; row++) {
-        for (let col = 0; col < 5; col++) {
-          if (charPattern[row][col]) {
-            // Draw scaled pixel
-            for (let sy = 0; sy < scale; sy++) {
-              for (let sx = 0; sx < scale; sx++) {
-                const px = Math.floor(charX + col * scale + sx);
-                const py = Math.floor(startY + row * scale + sy);
-                
-                if (px >= 0 && px < this.width && py >= 0 && py < this.height) {
-                  const idx = (py * this.width + px) * 4;
-                  this.backgroundData[idx] = 255;     // R
-                  this.backgroundData[idx + 1] = 255; // G
-                  this.backgroundData[idx + 2] = 255; // B
-                  this.backgroundData[idx + 3] = 255; // A
-                }
-              }
-            }
-          }
-        }
-      }
+      // Transpose the character pattern to fit the background and copy character pattern into backgroundData
+      this.backgroundData.set(this.transpose(charPattern, 128, 256), charPattern.length * i);
     }
+
+    // Transpose the background data again
+    this.backgroundData.set(this.transpose(this.backgroundData, 256, 512));
   }
 
   generateFrame() {
@@ -167,18 +122,18 @@ class CaptchaGenerator {
 
     // Combine layers
     for (let i = 0; i < this.frameData.length; i += 4) {
-      if (this.backgroundData[i + 3] !== 0) {
+      if (this.backgroundData[i + 4] != 255) {
         const xIndex = (i / 4) % this.width;
         const yIndex = Math.floor(i / (this.width * 4));
         const sourceArr = (yIndex % 2 === 0) !== (xIndex % 2 === 0) ? this.xScroller : this.yScroller;
         
-        this.frameData[i]     = sourceArr[i];
+        this.frameData[i    ] = sourceArr[i];
         this.frameData[i + 1] = sourceArr[i + 1];
         this.frameData[i + 2] = sourceArr[i + 2];
         this.frameData[i + 3] = 255;
       } else {
         const value = 1 + Math.floor(Math.random() * 255);
-        this.frameData[i] = value;
+        this.frameData[i    ] = value;
         this.frameData[i + 1] = value;
         this.frameData[i + 2] = value;
         this.frameData[i + 3] = 255;
@@ -191,18 +146,30 @@ class CaptchaGenerator {
 }
 
 // Hash function for generating CAPTCHA from URL
-async function hashString(str) {
+async function hashString(input) {
+  // Convert string to UTF-8 encoded bytes
   const encoder = new TextEncoder();
-  const data = encoder.encode(str);
+  const data = encoder.encode(input);
+  
+  // Generate SHA-256 hash
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  
+  // Convert to byte array
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex.substring(0, 4).toUpperCase();
+  
+  // Use first 4 bytes to generate 4 letters
+  const letters = hashArray.slice(0, 4).map(byte => {
+    // Map byte value (0-255) to letter (A-Z)
+    const letterIndex = byte % 26;
+    return String.fromCharCode(65 + letterIndex);
+  }).join('');
+  
+  return letters;
 }
 
 // Generate random URL code
 function generateUrlCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let result = '';
   for (let i = 0; i < 8; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -225,7 +192,11 @@ export default {
         validate_url: `/validate/${urlCode}`,
         captcha_text: captchaText // In production, don't expose this
       }), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
       });
     }
 
@@ -244,9 +215,9 @@ export default {
         const gif = new GIFEncoder();
         
         // Generate multiple frames for animation
-        const numFrames = 15;
+        const numFrames = 25;
         for (let i = 0; i < numFrames; i++) {
-          generator.drawText(captchaText, generator.width / 2, generator.height / 2);
+          generator.drawText(captchaText);
           const frameData = generator.generateFrame();
           
           // Quantize colors to a palette
@@ -271,7 +242,8 @@ export default {
         return new Response(gifData, {
           headers: { 
             'Content-Type': 'image/gif',
-            'Cache-Control': 'no-cache, no-store, must-revalidate'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Access-Control-Allow-Origin': '*'
           }
         });
       } catch (error) {
@@ -296,7 +268,11 @@ export default {
         valid: isValid,
         expected: expectedCaptcha // In production, don't expose this
       }), {
-        headers: { 'Content-Type': 'application/json' }
+        // Add CORS headers for all addresses
+        headers: { 'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                  'Cache-Control': 'no-cache, no-store, must-revalidate'
+         }
       });
     }
 
