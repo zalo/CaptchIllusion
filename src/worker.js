@@ -1,6 +1,7 @@
 import { GIFEncoder, quantize, applyPalette } from './gifenc.esm.js';
 import { TEXT_ATLAS } from './text_atlas.js'; // Import the text atlas
 import { encode } from './UPNG.js'; // Import UPNG for PNG encoding
+import { svgTemplate } from './svg_template.js'; // Import SVG template
 
 class CaptchaGenerator {
   constructor() {
@@ -205,7 +206,7 @@ export default {
       const captchaText = await hashString(urlCode);
       
       return new Response(JSON.stringify({
-        captcha_url: `/captcha/${urlCode}`,
+        captcha_url: `/captcha/${urlCode}.svg`,
         validate_url: `/validate/${urlCode}`,
         captcha_text: captchaText // In production, don't expose this
       }), {
@@ -219,7 +220,8 @@ export default {
 
     // Generate CAPTCHA image
     if (path.startsWith('/captcha/')) {
-      const urlCode = path.split('/')[2];
+      let urlCode = path.split('/')[2];
+      urlCode = urlCode.split('.')[0]; // Remove the extension
       if (!urlCode) {
         return new Response('Invalid URL code', { status: 400 });
       }
@@ -228,7 +230,7 @@ export default {
         const captchaText = await hashString(urlCode);
         const generator = new CaptchaGenerator();
         
-        // Create GIF encoder
+        /*// Create GIF encoder
         const gif = new GIFEncoder();
         
         // Generate multiple frames for animation
@@ -254,7 +256,7 @@ export default {
         gif.finish();
         
         // Get the GIF bytes
-        const gifData = gif.bytes();
+        const gifData = gif.bytes();*/
 
         /*let frames = [];
         let delays = [];
@@ -304,9 +306,40 @@ export default {
         svgText += generateAnimationCSS(numFrames, 60); // 60 FPS animation
         svgText += '</svg>';*/
 
-        return new Response(gifData, {
+        /*let b64Frames = '';
+        const numFrames = 25;
+        for (let i = 0; i < numFrames; i++) {
+          generator.drawText(captchaText);
+          let frameData = generator.generateFrame();
+          let pngData = encode([frameData.buffer], 512, 256, 0);
+          let pngb64 = btoa([].reduce.call(new Uint8Array(pngData),function(p,c){return p+String.fromCharCode(c)},''));
+          b64Frames += '"'+pngb64 + '",\n';
+        }*/
+
+        let b64Frames = '';
+        const numFrames = 25;
+        for (let i = 0; i < numFrames; i++) {
+          generator.drawText(captchaText);
+          //let frameData = generator.generateFrame();
+          //let pngData = encode([frameData.buffer], 512, 256, 0);
+          //let pngb64 = btoa([].reduce.call(new Uint8Array(pngData),function(p,c){return p+String.fromCharCode(c)},''));
+          //b64Frames += '"'+pngb64 + '",\n';
+
+          let gif = new GIFEncoder();
+          let frameData = generator.generateFrame();
+          let palette = quantize(frameData, 256);
+          let index = applyPalette(frameData, palette);
+          gif.writeFrame(index, generator.width, generator.height, { palette: palette });
+          gif.finish();
+          let gifb64 = btoa([].reduce.call(gif.bytes(),function(p,c){return p+String.fromCharCode(c)},''));
+          b64Frames += '"'+gifb64 + '",\n';
+        }
+
+        let svgText = svgTemplate.replace('/*REPLACEME*/', b64Frames);
+
+        return new Response(svgText, {
           headers: { 
-            'Content-Type': 'image/gif',
+            'Content-Type': 'image/svg+xml',
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Access-Control-Allow-Origin': '*'
           }
